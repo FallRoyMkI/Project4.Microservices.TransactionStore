@@ -1,3 +1,8 @@
+using TransactionStore.BLL;
+using TransactionStore.Contracts;
+using TransactionStore.DAL;
+using TransactionStore.Mapper;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,6 +12,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<ITransactionManager, TransactionManager>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddSingleton<Context>();
+builder.Services.AddAutoMapper(typeof(TransferProfile));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
