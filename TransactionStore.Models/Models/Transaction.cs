@@ -8,7 +8,5 @@ public class Transaction
     public int AccountId { get; set; }
     public TransactionType Type { get; set; }
     public int Amount { get; set; }
-    public MoneyType BaseCurrency { get; set; }
-    public int? LinkedAccountId { get; set; }
     public DateTime Time { get; set; }
 }

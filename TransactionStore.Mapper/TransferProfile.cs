@@ -10,8 +10,9 @@ public class TransferProfile : Profile
     public TransferProfile()
     {
         CreateMap<TransactionDtoRequest, Transaction>();
-        CreateMap<TransactionDtoCreateTransferRequest, Transaction>();
-        CreateMap<Transaction, TransactionEntity>().ReverseMap();
-        CreateMap<Transaction, TransactionDtoResponse>();
+        CreateMap<TransferTransactionDtoRequest, TransferTransaction>();
+        CreateMap<Transaction, TransactionEntity>();
+        CreateMap<Transaction, TransactionDtoResponse>().ForMember(x=>x.Type,
+            opt=>opt.MapFrom(x=>x.Type.ToString()));
     }
 }
