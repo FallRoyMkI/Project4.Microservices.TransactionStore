@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Kerberos;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 
@@ -16,8 +18,9 @@ public class TransactionRepository : ITransactionRepository
     public async Task<int> CreateTransactionAsync(TransactionEntity transaction)
     {
         //хранимка на добавление в базу с установкой времени;
-        await _context.Transactions.AddAsync(transaction);
-        return transaction.Id;
+        var transactionId = _context.Database.SqlQuery<int>($"DECLARE @newObjectId int\r\nEXEC @newObjectId = AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}\r\nSELECT @newObjectId AS Id").ToList();
+
+        return transactionId[0];
     }
 
     public async Task<int[]> CreateTransferTransactionAsync(TransactionEntity transferWithdraw, TransactionEntity transferDeposit)
@@ -27,6 +30,7 @@ public class TransactionRepository : ITransactionRepository
         ids[1] = transferWithdraw.Id;
         await _context.Transactions.AddAsync(transferDeposit);
         ids[2] = transferDeposit.Id;
+
         return ids;
     }
 
@@ -41,7 +45,8 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<TransactionEntity> GetTransactionByIdAsync(int transactionId)
     {
-      //  return await _context.Transactions.FindAsync(x => x.Id == transactionId);
+
+        return await _context.Transactions.FindAsync(/*x => x.Id == transactionId*/);
     }
 
     private async Task<bool> IsAccountExistInDbAsync(int accountId)

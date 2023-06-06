@@ -22,7 +22,7 @@ namespace TransactionStore.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost]
+        [HttpPost("/kek")]
         public async Task<IActionResult> CreateTransactionAsync([FromBody] TransactionDtoRequest transaction)
         {
             // валидация на amount = 0;
@@ -50,7 +50,7 @@ namespace TransactionStore.API.Controllers
             return Ok(resultIds);
         }
 
-        [HttpGet]
+        [HttpGet("/qwe")]
         public async Task<IActionResult> GetAccountBalanceAsync([FromQuery] int accountId)
         {
             // валидация на account id >0;

@@ -11,7 +11,8 @@ public class TransferProfile : Profile
     {
         CreateMap<TransactionDtoRequest, Transaction>();
         CreateMap<TransferTransactionDtoRequest, TransferTransaction>();
-        CreateMap<Transaction, TransactionEntity>();
+        CreateMap<Transaction, TransactionEntity>().ForMember(x => x.Type,
+            opt => opt.MapFrom(x => x.Type.ToString()));
         CreateMap<Transaction, TransactionDtoResponse>().ForMember(x=>x.Type,
             opt=>opt.MapFrom(x=>x.Type.ToString()));
     }
