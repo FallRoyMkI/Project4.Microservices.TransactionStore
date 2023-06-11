@@ -19,9 +19,9 @@ public class TransactionManager : ITransactionManager
 
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
-        transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
+        transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw.ToString() : TransactionType.Deposit.ToString();
 
-        if (transaction.Type == TransactionType.Withdraw)
+        if (transaction.Type == TransactionType.Withdraw.ToString())
         {
             await IsEnoughMoneyForTransaction(transaction);
         }
@@ -32,12 +32,12 @@ public class TransactionManager : ITransactionManager
         return transactionId;
     }
 
-    public async Task<int[]> CreateTransferTransactionAsync(TransferTransaction transaction)
+    public async Task<List<int>> CreateTransferTransactionAsync(TransferTransaction transaction)
     {
         Transaction transferWithdraw = new Transaction()
         {
             AccountId = transaction.AccountId,
-            Type = TransactionType.TransferWithdraw,
+            Type = TransactionType.TransferWithdraw.ToString(),
             Amount = transaction.Amount
         };
 
@@ -46,13 +46,13 @@ public class TransactionManager : ITransactionManager
         Transaction transferDeposit = new Transaction()
         {
             AccountId = transaction.AccountId,
-            Type = TransactionType.TransferDeposit,
-            // Amount = transaction.Amount * КОЭФФИЦИЕНТ
+            Type = TransactionType.TransferDeposit.ToString(),
+            Amount = transaction.Amount * 10/1 // Коэффициент 
         };
         
         TransactionEntity transferWithdrawEntity = _mapper.Map<TransactionEntity>(transferWithdraw);
         TransactionEntity transferDepositEntity = _mapper.Map<TransactionEntity>(transferDeposit);
-        int[] resultIds = await _transactionRepository.CreateTransferTransactionAsync(transferWithdrawEntity, transferDepositEntity);
+        List<int> resultIds = await _transactionRepository.CreateTransferTransactionAsync(transferWithdrawEntity, transferDepositEntity);
 
         return resultIds;
     }
@@ -69,6 +69,15 @@ public class TransactionManager : ITransactionManager
 
         return transaction;
     }
+
+    public async Task<List<Transaction>> GetAllTransactionsByAccountIdAsync(int accountId)
+    {
+        List<TransactionEntity> callback = await _transactionRepository.GetAllTransactionsByAccountIdAsync(accountId);
+        List<Transaction> transaction = _mapper.Map<List<Transaction>>(callback);
+
+        return transaction;
+    }
+    
 
     private async Task IsEnoughMoneyForTransaction(Transaction transaction)
     {

@@ -18,20 +18,17 @@ public class TransactionRepository : ITransactionRepository
     public async Task<int> CreateTransactionAsync(TransactionEntity transaction)
     {
         //хранимка на добавление в базу с установкой времени;
-        var transactionId = _context.Database.SqlQuery<int>($"DECLARE @newObjectId int\r\nEXEC @newObjectId = AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}\r\nSELECT @newObjectId AS Id").ToList();
+        var transactionId = _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToList();
 
         return transactionId[0];
     }
 
-    public async Task<int[]> CreateTransferTransactionAsync(TransactionEntity transferWithdraw, TransactionEntity transferDeposit)
+    public async Task<List<int>> CreateTransferTransactionAsync(TransactionEntity transferWithdraw, TransactionEntity transferDeposit)
     {
-        int[] ids = new int[2];
-        await _context.Transactions.AddAsync(transferWithdraw);
-        ids[1] = transferWithdraw.Id;
-        await _context.Transactions.AddAsync(transferDeposit);
-        ids[2] = transferDeposit.Id;
+        var transactionId = await _context.Database.SqlQuery<int>
+            ($"EXEC AddTransfer {transferWithdraw.AccountId}, {transferWithdraw.Type}, {transferWithdraw.Amount},{transferDeposit.AccountId}, {transferDeposit.Type}, {transferDeposit.Amount}").ToListAsync();
 
-        return ids;
+        return transactionId;
     }
 
     public async Task<int> GetAccountBalanceAsync(int accountId)
@@ -46,7 +43,12 @@ public class TransactionRepository : ITransactionRepository
     public async Task<TransactionEntity> GetTransactionByIdAsync(int transactionId)
     {
 
-        return await _context.Transactions.FindAsync(/*x => x.Id == transactionId*/);
+        return await _context.Transactions.SingleAsync(x => x.Id == transactionId);
+    }
+
+    public async Task<List<TransactionEntity>> GetAllTransactionsByAccountIdAsync(int accountId)
+    {
+        return (await _context.Transactions.ToListAsync()).FindAll(x => x.AccountId == accountId);
     }
 
     private async Task<bool> IsAccountExistInDbAsync(int accountId)
