@@ -56,7 +56,7 @@ namespace TransactionStore.API.Controllers
             // валидация на account id >0;
             // валидация на account id => циферки а не буковки;
 
-            int balance = await _transactionManager.GetAccountBalanceAsync(accountId);
+            decimal balance = await _transactionManager.GetAccountBalanceAsync(accountId);
 
             return Ok(balance);
         }

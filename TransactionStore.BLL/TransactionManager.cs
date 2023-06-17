@@ -10,11 +10,13 @@ public class TransactionManager : ITransactionManager
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IMapper _mapper;
+    private readonly CurrencyRate _currencyRate;
 
     public TransactionManager(ITransactionRepository transactionRepository, IMapper mapper)
     {
         _transactionRepository = transactionRepository;
         _mapper = mapper;
+        _currencyRate = new CurrencyRate();
     }
 
     public async Task<int> CreateTransactionAsync(Transaction transaction)
@@ -47,7 +49,7 @@ public class TransactionManager : ITransactionManager
         {
             AccountId = transaction.AccountId,
             Type = TransactionType.TransferDeposit.ToString(),
-            Amount = transaction.Amount * 10/1 // Коэффициент 
+            Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType) // Коэффициент 
         };
         
         TransactionEntity transferWithdrawEntity = _mapper.Map<TransactionEntity>(transferWithdraw);
@@ -57,7 +59,7 @@ public class TransactionManager : ITransactionManager
         return resultIds;
     }
 
-    public async Task<int> GetAccountBalanceAsync(int accountId)
+    public async Task<decimal> GetAccountBalanceAsync(int accountId)
     {
         return await _transactionRepository.GetAccountBalanceAsync(accountId);
     }

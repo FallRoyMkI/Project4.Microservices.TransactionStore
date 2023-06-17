@@ -31,7 +31,7 @@ public class TransactionRepository : ITransactionRepository
         return transactionId;
     }
 
-    public async Task<int> GetAccountBalanceAsync(int accountId)
+    public async Task<decimal> GetAccountBalanceAsync(int accountId)
     {
         if (!await IsAccountExistInDbAsync(accountId)) return 0;
 
