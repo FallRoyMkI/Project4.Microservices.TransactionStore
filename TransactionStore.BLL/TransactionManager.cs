@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System.Globalization;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 using TransactionStore.Models.Enums;
@@ -21,9 +22,9 @@ public class TransactionManager : ITransactionManager
 
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
-        transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw.ToString() : TransactionType.Deposit.ToString();
+        transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
 
-        if (transaction.Type == TransactionType.Withdraw.ToString())
+        if (transaction.Type == TransactionType.Withdraw)
         {
             await IsEnoughMoneyForTransaction(transaction);
         }
@@ -39,7 +40,7 @@ public class TransactionManager : ITransactionManager
         Transaction transferWithdraw = new Transaction()
         {
             AccountId = transaction.AccountId,
-            Type = TransactionType.TransferWithdraw.ToString(),
+            Type = TransactionType.TransferWithdraw,
             Amount = -transaction.Amount
         };
 
@@ -48,7 +49,7 @@ public class TransactionManager : ITransactionManager
         Transaction transferDeposit = new Transaction()
         {
             AccountId = transaction.TargetAccountId,
-            Type = TransactionType.TransferDeposit.ToString(),
+            Type = TransactionType.TransferDeposit,
             Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType) 
         };
         
@@ -72,15 +73,15 @@ public class TransactionManager : ITransactionManager
         return transaction;
     }
 
-    public async Task<List<Transaction>> GetAllTransactionsByAccountIdAsync(int accountId)
+    public async Task<List<Object>> GetAllTransactionsByAccountIdAsync(int accountId)
     {
         List<TransactionEntity> callback = await _transactionRepository.GetAllTransactionsByAccountIdAsync(accountId);
-        List<Transaction> transaction = _mapper.Map<List<Transaction>>(callback);
+        List<Transaction> transactions = _mapper.Map<List<Transaction>>(callback);
+        List<Object> result = CreateTransactionsResponse(transactions); 
 
-        return transaction;
+        return result;
     }
     
-
     private async Task IsEnoughMoneyForTransaction(Transaction transaction)
     {
         decimal accountBalance = await _transactionRepository.GetAccountBalanceAsync(transaction.AccountId);
@@ -89,5 +90,27 @@ public class TransactionManager : ITransactionManager
         {
             throw new Exception("мала деняк");
         }
+    }
+
+    private List<Object> CreateTransactionsResponse(List<Transaction> transactions)
+    {
+        List<Object> result = new List<Object>();
+
+        foreach(var transaction in transactions) 
+        {
+            if(transaction.Type == TransactionType.TransferWithdraw)
+            {
+                Transaction deposit = transactions.Find(x => x.Type == TransactionType.TransferDeposit && x.Time == transaction.Time)!;
+                TransferTransactionResponse transfer = new(transaction, deposit);
+
+                result.Add(transfer);
+            }
+            else if(transaction.Type != TransactionType.TransferDeposit)
+            {
+                result.Add(transaction);
+            }
+        }
+
+        return result;
     }
 }

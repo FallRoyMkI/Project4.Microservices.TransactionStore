@@ -12,7 +12,7 @@ using TransactionStore.DAL;
 namespace TransactionStore.DAL.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230606175837_MigrationDB")]
+    [Migration("20230618191424_MigrationDB")]
     partial class MigrationDB
     {
         /// <inheritdoc />
@@ -36,15 +36,14 @@ namespace TransactionStore.DAL.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("Time")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

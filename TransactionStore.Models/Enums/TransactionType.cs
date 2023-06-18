@@ -5,5 +5,6 @@ public enum TransactionType
     Withdraw = 0,
     Deposit = 1,
     TransferWithdraw = 2,
-    TransferDeposit = 3
+    TransferDeposit = 3,
+    Transfer = 4
 }

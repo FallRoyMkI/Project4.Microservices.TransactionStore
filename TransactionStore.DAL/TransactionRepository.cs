@@ -18,7 +18,7 @@ public class TransactionRepository : ITransactionRepository
     public async Task<int> CreateTransactionAsync(TransactionEntity transaction)
     {
         //хранимка на добавление в базу с установкой времени;
-        var transactionId = _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToList();
+        var transactionId = await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToListAsync();
 
         return transactionId[0];
     }
@@ -48,7 +48,9 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<List<TransactionEntity>> GetAllTransactionsByAccountIdAsync(int accountId)
     {
-        return (await _context.Transactions.ToListAsync()).FindAll(x => x.AccountId == accountId);
+        List<TransactionEntity> transactions = await _context.Transactions.FromSql($"EXEC GetTransactionsByAccountId {accountId}").ToListAsync();
+
+        return transactions;
     }
 
     private async Task<bool> IsAccountExistInDbAsync(int accountId)

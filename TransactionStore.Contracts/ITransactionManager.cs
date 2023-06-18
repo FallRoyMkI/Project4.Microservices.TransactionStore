@@ -8,5 +8,5 @@ public interface ITransactionManager
     public Task<List<int>> CreateTransferTransactionAsync(TransferTransaction transaction);
     public Task<decimal> GetAccountBalanceAsync(int accountId);
     public Task<Transaction> GetTransactionByIdAsync(int transactionId);
-    public Task<List<Transaction>> GetAllTransactionsByAccountIdAsync(int accountId);
+    public Task<List<Object>> GetAllTransactionsByAccountIdAsync(int accountId);
 }

@@ -76,16 +76,28 @@ namespace TransactionStore.API.Controllers
         }
 
         [HttpGet("/qwe/qwe")]
-        public async Task<IActionResult> GetAllTransactionsByAccountIdAsync([FromQuery] int transactionId)
+        public async Task<IActionResult> GetAllTransactionsByAccountIdAsync([FromQuery] int accountId)
         {
             {
                 // валидация на id >0;
                 // валидация на id => циферки а не буковки;
 
-                List<Transaction> callback = await _transactionManager.GetAllTransactionsByAccountIdAsync(transactionId);
-                List<TransactionDtoResponse> transaction = _mapper.Map<List<TransactionDtoResponse>>(callback);
+                List<Object> callback = await _transactionManager.GetAllTransactionsByAccountIdAsync(accountId);
+                List<Object> result = new List<Object>();
 
-                return Ok(transaction);
+                foreach(Object transaction in callback)
+                {
+                    if(transaction is Transaction)
+                    {
+                        result.Add(_mapper.Map<TransactionDtoResponse>(transaction));
+                    }
+                    else
+                    {
+                        result.Add(_mapper.Map<TransactionDtoTransferResponse>(transaction));
+                    }
+                }
+
+                return Ok(result);
             }
         }
     }
