@@ -40,16 +40,16 @@ public class TransactionManager : ITransactionManager
         {
             AccountId = transaction.AccountId,
             Type = TransactionType.TransferWithdraw.ToString(),
-            Amount = transaction.Amount
+            Amount = -transaction.Amount
         };
 
         await IsEnoughMoneyForTransaction(transferWithdraw);
 
         Transaction transferDeposit = new Transaction()
         {
-            AccountId = transaction.AccountId,
+            AccountId = transaction.TargetAccountId,
             Type = TransactionType.TransferDeposit.ToString(),
-            Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType) // Коэффициент 
+            Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType) 
         };
         
         TransactionEntity transferWithdrawEntity = _mapper.Map<TransactionEntity>(transferWithdraw);
@@ -83,7 +83,7 @@ public class TransactionManager : ITransactionManager
 
     private async Task IsEnoughMoneyForTransaction(Transaction transaction)
     {
-        int accountBalance = await _transactionRepository.GetAccountBalanceAsync(transaction.AccountId);
+        decimal accountBalance = await _transactionRepository.GetAccountBalanceAsync(transaction.AccountId);
 
         if (accountBalance < Math.Abs(transaction.Amount))
         {
