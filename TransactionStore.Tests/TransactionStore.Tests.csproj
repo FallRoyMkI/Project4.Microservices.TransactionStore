@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,9 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="API.Tests\" />
-    <Folder Include="BLL.Tests\" />
-    <Folder Include="DAL.Tests\" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+    <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.6.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
