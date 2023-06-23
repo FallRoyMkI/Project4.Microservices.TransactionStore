@@ -1,6 +1,4 @@
-﻿
-
-using System.Collections;
+﻿using System.Collections;
 using TransactionStore.Models.Entities;
 
 namespace TransactionStore.Tests.DAL.Tests

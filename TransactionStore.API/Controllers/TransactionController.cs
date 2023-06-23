@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
-using Azure.Core.Cryptography;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using NLog.Targets;
+using TransactionStore.API.Validations;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Dtos;
 using TransactionStore.Models.Models;
+using TransactionStore.TransactionsGenerator;
+using ILogger = NLog.ILogger;
 
 namespace TransactionStore.API.Controllers
 {
@@ -15,79 +18,137 @@ namespace TransactionStore.API.Controllers
     {
         private readonly ITransactionManager _transactionManager;
         private readonly IMapper _mapper;
-
-        public TransactionController(ITransactionManager transactionManager, IMapper mapper)
+        private readonly ILogger _logger;
+        private readonly TransactionValidator _validatorTransaction;
+        private readonly TransferTransactionValidator _validatorTransfer;
+        public TransactionController(ITransactionManager transactionManager, IMapper mapper, ILogger logger, TransactionValidator validator)
         {
             _transactionManager = transactionManager;
             _mapper = mapper;
+            _logger = logger;
+            _validatorTransaction = validator;
         }
 
-        [HttpPost("/kek")]
+        [HttpPost("/")]
         public async Task<IActionResult> CreateTransactionAsync([FromBody] TransactionDtoRequest transaction)
         {
-            // валидация на amount = 0;
-            // валидация на account id >0;
-            // валидация на account id => циферки а не буковки;
+            try
+            {
+                var validationResult = _validatorTransaction.Validate(transaction);
+                if (!validationResult.IsValid)
+                {
+                    foreach (var error in validationResult.Errors)
+                    {
+                        _logger.Warn(error.ErrorMessage);
+                    }
 
-            Transaction transactionBll = _mapper.Map<Transaction>(transaction);
-            int resultId = await _transactionManager.CreateTransactionAsync(transactionBll);
+                    return BadRequest(validationResult.Errors);
+                }
 
-            return Ok(resultId);
+                Transaction transactionBll = _mapper.Map<Transaction>(transaction);
+                int resultId = await _transactionManager.CreateTransactionAsync(transactionBll);
+
+                return Ok(resultId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost]
+        [HttpPost("/transfer")]
         public async Task<IActionResult> CreateTransferTransactionAsync([FromBody] TransferTransactionDtoRequest transferTransaction)
         {
-            // валидация на amount = 0;
-            // валидация на account id >0;
-            // валидация на account id => циферки а не буковки;
-            // валидация на baseMoney != null;
-
-
-            TransferTransaction transactionBll = _mapper.Map<TransferTransaction>(transferTransaction);
-            List<int> resultIds = await _transactionManager.CreateTransferTransactionAsync(transactionBll);
-
-            return Ok(resultIds);
-        }
-
-        [HttpGet("/qwe")]
-        public async Task<IActionResult> GetAccountBalanceAsync([FromQuery] int accountId)
-        {
-            // валидация на account id >0;
-            // валидация на account id => циферки а не буковки;
-
-            decimal balance = await _transactionManager.GetAccountBalanceAsync(accountId);
-
-            return Ok(balance);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetTransactionById([FromQuery] int transactionId)
-        {
+            try
             {
-                // валидация на id >0;
-                // валидация на id => циферки а не буковки;
+                var validationResult = _validatorTransfer.Validate(transferTransaction);
+                if (!validationResult.IsValid)
+                {
+                    foreach (var error in validationResult.Errors)
+                    {
+                        _logger.Warn(error.ErrorMessage);
+                    }
+
+                    return BadRequest(validationResult.Errors);
+                }
+
+                TransferTransaction transactionBll = _mapper.Map<TransferTransaction>(transferTransaction);
+                List<int> resultIds = await _transactionManager.CreateTransferTransactionAsync(transactionBll);
+
+                return Ok(resultIds);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("/balanse/{accountId}")]
+        public async Task<IActionResult> GetAccountBalanceAsync([FromRoute] int accountId)
+        {
+            try
+            {
+                if (accountId < 1)
+                {
+                    ArgumentException ex = new ArgumentException("Invalid accountId");
+                    _logger.Warn(ex.Message);
+
+                    return BadRequest(ex.Message);
+                }
+
+                decimal balance = await _transactionManager.GetAccountBalanceAsync(accountId);
+
+                return Ok(balance);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("/transaction/{transactionId}")]
+        public async Task<IActionResult> GetTransactionByIdAsync([FromRoute] int transactionId)
+        {
+            try
+            {
+                if (transactionId < 1)
+                {
+                    ArgumentException ex = new ArgumentException("Invalid transactionId");
+                    _logger.Warn(ex.Message);
+
+                    return BadRequest(ex.Message);
+                }
 
                 Transaction callback = await _transactionManager.GetTransactionByIdAsync(transactionId);
                 TransactionDtoResponse transaction = _mapper.Map<TransactionDtoResponse>(callback);
 
                 return Ok(transaction);
             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpGet("/qwe/qwe")]
-        public async Task<IActionResult> GetAllTransactionsByAccountIdAsync([FromQuery] int accountId)
+        [HttpGet("/transactions/{accountId}")]
+        public async Task<IActionResult> GetAllTransactionsByAccountIdAsync([FromRoute] int accountId)
         {
+            try
             {
-                // валидация на id >0;
-                // валидация на id => циферки а не буковки;
+                if (accountId < 1)
+                {
+                    ArgumentException ex = new ArgumentException("Invalid accountId");
+                    _logger.Warn(ex.Message);
+
+                    return BadRequest(ex.Message);
+                }
 
                 List<Object> callback = await _transactionManager.GetAllTransactionsByAccountIdAsync(accountId);
                 List<Object> result = new List<Object>();
 
-                foreach(Object transaction in callback)
+                foreach (Object transaction in callback)
                 {
-                    if(transaction is Transaction)
+                    if (transaction is Transaction)
                     {
                         result.Add(_mapper.Map<TransactionDtoResponse>(transaction));
                     }
@@ -99,6 +160,112 @@ namespace TransactionStore.API.Controllers
 
                 return Ok(result);
             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost()]
+        public async Task Fill()
+        {
+            int startLeadId = 6102;
+            int countLeads = 4000000;
+            GeneratorContext _context = new();
+
+            for (int i = startLeadId; i < startLeadId + countLeads; ++i)
+            {
+                List<Accounts> accounts = _context.Accounts.FromSql($"Exec GetAccountsByLeadId {i}").ToList();
+                int countAccounts = accounts.Count();
+
+                if (countAccounts == 1)
+                {
+                    await TransactionDeposit(accounts[0]);
+                    await TransactionDeposit(accounts[0]);
+                    await TransactionWithdraw(accounts[0]);
+                }
+                else
+                {
+                    foreach (var account in accounts)
+                    {
+                        if(account.Currency == "PY")
+                        {
+                            account.Currency = "JPY";
+                        }
+                    }
+
+                    for (int j = 0; j < countAccounts * 0.7*3; ++j )
+                    {
+                        await TransactionTransfer(accounts);
+                    }
+
+                    for (int j = 0; j < countAccounts * 0.2 * 3; ++j)
+                    {
+                        int accountIndex = new Random().Next(countAccounts);
+                        await TransactionDeposit(accounts[accountIndex]);
+                    }
+
+                    for (int j = 0; j < countAccounts * 0.1 * 3; ++j)
+                    {
+                        int accountIndex = new Random().Next(countAccounts);
+                        await TransactionWithdraw(accounts[accountIndex]);
+                    }
+                }
+            }
+        }
+
+        private async Task TransactionDeposit(Accounts accounts)
+        {
+            int amountDeposit = new Random().Next(1, 10000);
+            Transaction transaction = new()
+            {
+                AccountId = accounts.Id,
+                Amount = amountDeposit
+            };
+            await _transactionManager.CreateTransactionAsync(transaction);
+        }
+
+        private async Task TransactionWithdraw(Accounts accounts)
+        {
+            int amountWithdraw = new Random().Next(-10000, -1);
+            Transaction transaction = new()
+            {
+                AccountId = accounts.Id,
+                Amount = amountWithdraw
+            };
+            await _transactionManager.CreateTransactionAsync(transaction);
+        }
+
+        private async Task TransactionTransfer(List<Accounts> accounts)
+        {
+            int accountIndex = 0;
+            int targetIndex = 0;
+            int amount = 0;
+            int countAccounts = accounts.Count();
+
+
+            while (accountIndex == targetIndex)
+            {
+                accountIndex = new Random().Next(countAccounts);
+                targetIndex = new Random().Next(countAccounts);
+            }
+
+            
+            while (amount == 0)
+            {
+                amount = new Random().Next(1000);
+            }
+
+            TransferTransaction transaction = new()
+            {
+                AccountId = accounts[accountIndex].Id,
+                TargetAccountId = accounts[targetIndex].Id,
+                MoneyType = accounts[accountIndex].Currency,
+                TargetMoneyType = accounts[targetIndex].Currency,
+                Amount = amount
+            };
+
+            await _transactionManager.CreateTransferTransactionAsync(transaction);
         }
     }
 }

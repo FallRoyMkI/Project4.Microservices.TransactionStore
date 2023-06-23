@@ -43,6 +43,7 @@ namespace TransactionStore.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("Transactions");
                 });

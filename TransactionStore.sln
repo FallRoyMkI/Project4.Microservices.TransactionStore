@@ -3,19 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.API", "TransactionStore.API\TransactionStore.API.csproj", "{B5FB1720-8445-48CE-9ACD-157BE396D298}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.API", "TransactionStore.API\TransactionStore.API.csproj", "{B5FB1720-8445-48CE-9ACD-157BE396D298}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.BLL", "TransactionStore.BLL\TransactionStore.BLL.csproj", "{2B5ADB45-B802-4323-B3E6-ADA405AC798C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.BLL", "TransactionStore.BLL\TransactionStore.BLL.csproj", "{2B5ADB45-B802-4323-B3E6-ADA405AC798C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.DAL", "TransactionStore.DAL\TransactionStore.DAL.csproj", "{FE6592D8-B2E2-4D51-B24F-E40F4BB50BB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.DAL", "TransactionStore.DAL\TransactionStore.DAL.csproj", "{FE6592D8-B2E2-4D51-B24F-E40F4BB50BB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.Contracts", "TransactionStore.Contracts\TransactionStore.Contracts.csproj", "{A4702A95-B9E4-424F-845E-E436834EB8B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.Contracts", "TransactionStore.Contracts\TransactionStore.Contracts.csproj", "{A4702A95-B9E4-424F-845E-E436834EB8B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.Models", "TransactionStore.Models\TransactionStore.Models.csproj", "{7BED98FA-7EF8-4CCB-A09A-677FAAF3A51E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.Models", "TransactionStore.Models\TransactionStore.Models.csproj", "{7BED98FA-7EF8-4CCB-A09A-677FAAF3A51E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.Mapper", "TransactionStore.Mapper\TransactionStore.Mapper.csproj", "{ADA392B5-ED88-49FC-9BEA-36E60AE7CCFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.Mapper", "TransactionStore.Mapper\TransactionStore.Mapper.csproj", "{ADA392B5-ED88-49FC-9BEA-36E60AE7CCFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.Tests", "TransactionStore.Tests\TransactionStore.Tests.csproj", "{9A11663B-92C1-4D3F-8C27-5CF4573DD276}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionStore.Tests", "TransactionStore.Tests\TransactionStore.Tests.csproj", "{9A11663B-92C1-4D3F-8C27-5CF4573DD276}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionStore.TransactionsGenerator", "TransactionStore.TransactionsGenerator\TransactionStore.TransactionsGenerator.csproj", "{C7BF060A-7238-4E15-8EB8-B0B68F99F4CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{9A11663B-92C1-4D3F-8C27-5CF4573DD276}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A11663B-92C1-4D3F-8C27-5CF4573DD276}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A11663B-92C1-4D3F-8C27-5CF4573DD276}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7BF060A-7238-4E15-8EB8-B0B68F99F4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7BF060A-7238-4E15-8EB8-B0B68F99F4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7BF060A-7238-4E15-8EB8-B0B68F99F4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7BF060A-7238-4E15-8EB8-B0B68F99F4CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,7 +3,9 @@ using System.Globalization;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 using TransactionStore.Models.Enums;
+using TransactionStore.Models.Exceptions;
 using TransactionStore.Models.Models;
+using ILogger = NLog.ILogger;
 
 namespace TransactionStore.BLL;
 
@@ -12,22 +14,24 @@ public class TransactionManager : ITransactionManager
     private readonly ITransactionRepository _transactionRepository;
     private readonly IMapper _mapper;
     private readonly CurrencyRate _currencyRate;
+    private readonly ILogger _logger;
 
-    public TransactionManager(ITransactionRepository transactionRepository, IMapper mapper)
+    public TransactionManager(ITransactionRepository transactionRepository, IMapper mapper, ILogger logger)
     {
         _transactionRepository = transactionRepository;
         _mapper = mapper;
         _currencyRate = new CurrencyRate();
+        _logger = logger;
     }
 
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
         transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
 
-        if (transaction.Type == TransactionType.Withdraw)
-        {
-            await IsEnoughMoneyForTransaction(transaction);
-        }
+        //if (transaction.Type == TransactionType.Withdraw)
+        //{
+        //    await IsEnoughMoneyForTransaction(transaction);
+        //}
 
         TransactionEntity transactionEntity = _mapper.Map<TransactionEntity>(transaction);
         int transactionId = await _transactionRepository.CreateTransactionAsync(transactionEntity);
@@ -44,7 +48,7 @@ public class TransactionManager : ITransactionManager
             Amount = -transaction.Amount
         };
 
-        await IsEnoughMoneyForTransaction(transferWithdraw);
+        //await IsEnoughMoneyForTransaction(transferWithdraw);
 
         Transaction transferDeposit = new Transaction()
         {
@@ -88,7 +92,8 @@ public class TransactionManager : ITransactionManager
 
         if (accountBalance < Math.Abs(transaction.Amount))
         {
-            throw new Exception("мала деняк");
+            MoneyIsNotEnoughException ex = new("Not enough money for transaction");
+            _logger.Warn(ex.Message);
         }
     }
 
