@@ -9,6 +9,7 @@ public class Context : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
-        builder.UseSqlServer(@"Data Source= DESKTOP-MH87Q5L\SQLEXPRESS;Initial Catalog = TransactionSto;Trusted_Connection=True; TrustServerCertificate=True;", builder => builder.EnableRetryOnFailure());
+        builder.UseSqlServer(@"Data Source= 194.87.210.5;Initial Catalog = TStoreBourseDB;
+                                TrustServerCertificate=True;User ID = student;Password=qwe!23;", builder => builder.EnableRetryOnFailure());
     }
 }

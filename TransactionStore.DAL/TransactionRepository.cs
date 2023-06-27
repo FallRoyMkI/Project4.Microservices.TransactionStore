@@ -22,13 +22,14 @@ public class TransactionRepository : ITransactionRepository
     {
         List<int> transactionId = await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToListAsync();
 
-        //if (transactionId.Count() == 0)
-        //{
-        //    ServerException ex = new("Server response is null");
-        //    _logger.Warn(ex.Message);
+        if (transactionId.Count() == 0)
+        {
+            ServerException ex = new("Server response is null");
+            _logger.Warn(ex.Message);
 
-        //    throw ex;
-        //}
+            throw ex;
+        }
+
 
         return transactionId[0];
     }
@@ -53,17 +54,7 @@ public class TransactionRepository : ITransactionRepository
     {
         if (!await IsAccountExistInDbAsync(accountId)) return 0;
 
-        List<TransactionEntity> accountOperations = (await _context.Transactions.ToListAsync()).FindAll(x => x.AccountId == accountId);
-
-        decimal balance = accountOperations.Sum(transaction => transaction.Amount);
-
-        if(accountOperations.Count() == 0)
-        {
-            ServerException ex = new("Server response is null");
-            _logger.Warn(ex.Message);
-
-            throw ex;
-        }
+        decimal balance = (await _context.Database.SqlQuery<decimal>($"EXEC GetAccountBalance {accountId}").ToListAsync())[0];
 
         return balance;
     }
