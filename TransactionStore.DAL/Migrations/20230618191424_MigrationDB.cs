@@ -152,6 +152,7 @@ namespace TransactionStore.DAL.Migrations
                     FROM @objects as o
                     order by o.Time ASC, o.Type DESC
                 END  ')");
+
             migrationBuilder.CreateIndex("NonClusteredIndex", "Transactions", "AccountId");
         }
 

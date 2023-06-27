@@ -10,3 +10,4 @@ public class TransactionEntity
     public TransactionType Type { get; set; }
     public DateTime Time { get; set; }
 }
+

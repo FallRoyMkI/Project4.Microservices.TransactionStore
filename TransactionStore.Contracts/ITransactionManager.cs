@@ -1,4 +1,5 @@
-﻿using TransactionStore.Models.Models;
+﻿using TransactionStore.Models.Entities;
+using TransactionStore.Models.Models;
 
 namespace TransactionStore.Contracts;
 
@@ -9,4 +10,6 @@ public interface ITransactionManager
     public Task<decimal> GetAccountBalanceAsync(int accountId);
     public Task<Transaction> GetTransactionByIdAsync(int transactionId);
     public Task<List<Object>> GetAllTransactionsByAccountIdAsync(int accountId);
+    public Task FillTransactions(List<TransactionEntity> transactions);
+    public Task FillTransfers(List<TransferTransaction> transactions);
 }

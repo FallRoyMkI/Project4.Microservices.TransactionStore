@@ -5,6 +5,7 @@ using Microsoft.Identity.Client.Kerberos;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 using TransactionStore.Models.Exceptions;
+using TransactionStore.Models.Models;
 using ILogger = NLog.ILogger;
 
 namespace TransactionStore.DAL;
@@ -100,5 +101,11 @@ public class TransactionRepository : ITransactionRepository
     private async Task<bool> IsAccountExistInDbAsync(int accountId)
     {
         return await _context.Transactions.AnyAsync(x=> x.AccountId == accountId);
+    }
+    
+    public async Task FillTransactions(List<TransactionEntity> transactions)
+    {
+        await _context.Transactions.AddRangeAsync(transactions);
+        await _context.SaveChangesAsync();
     }
 }

@@ -27,7 +27,7 @@ public class TransactionManager : ITransactionManager
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
         transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
-
+        
         //if (transaction.Type == TransactionType.Withdraw)
         //{
         //    await IsEnoughMoneyForTransaction(transaction);
@@ -117,5 +117,43 @@ public class TransactionManager : ITransactionManager
         }
 
         return result;
+    }
+
+    public async Task FillTransactions(List<TransactionEntity> transactions)
+    {
+        await _transactionRepository.FillTransactions(transactions);
+    }
+
+    public async Task FillTransfers(List<TransferTransaction> transactions)
+    {
+        List<TransactionEntity> result = new();
+
+        foreach (TransferTransaction transaction in transactions)
+        {
+            Transaction transferWithdraw = new Transaction()
+            {
+                AccountId = transaction.AccountId,
+                Type = TransactionType.TransferWithdraw,
+                Amount = -transaction.Amount
+            };
+
+            Transaction transferDeposit = new Transaction()
+            {
+                AccountId = transaction.TargetAccountId,
+                Type = TransactionType.TransferDeposit,
+                Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType)
+            };
+
+            DateTime utc = DateTime.UtcNow;
+            TransactionEntity transferWithdrawEntity = _mapper.Map<TransactionEntity>(transferWithdraw);
+            transferWithdrawEntity.Time = utc;
+            result.Add(transferWithdrawEntity);
+
+            TransactionEntity transferDepositEntity = _mapper.Map<TransactionEntity>(transferDeposit);
+            transferDepositEntity.Time = utc;
+            result.Add(transferDepositEntity);
+        }
+
+        await FillTransactions(result);
     }
 }

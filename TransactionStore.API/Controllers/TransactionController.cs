@@ -1,11 +1,11 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using NLog.Targets;
 using TransactionStore.API.Validations;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Dtos;
+using TransactionStore.Models.Entities;
+using TransactionStore.Models.Enums;
 using TransactionStore.Models.Models;
 using TransactionStore.TransactionsGenerator;
 using ILogger = NLog.ILogger;
@@ -169,9 +169,11 @@ namespace TransactionStore.API.Controllers
         [HttpPost()]
         public async Task Fill()
         {
-            int startLeadId = 6102;
-            int countLeads = 4000000;
+            int startLeadId = 2090008;
+            int countLeads = 1916094;
             GeneratorContext _context = new();
+            List<TransactionEntity> transactions = new();
+            List<TransferTransaction> transfers = new();
 
             for (int i = startLeadId; i < startLeadId + countLeads; ++i)
             {
@@ -180,69 +182,90 @@ namespace TransactionStore.API.Controllers
 
                 if (countAccounts == 1)
                 {
-                    await TransactionDeposit(accounts[0]);
-                    await TransactionDeposit(accounts[0]);
-                    await TransactionWithdraw(accounts[0]);
+                    transactions.Add(await TransactionDeposit(accounts[0]));
+                    transactions.Add(await TransactionDeposit(accounts[0]));
+                    transactions.Add(await TransactionWithdraw(accounts[0]));
                 }
                 else
                 {
                     foreach (var account in accounts)
                     {
-                        if(account.Currency == "PY")
+                        if (account.Currency == "PY")
                         {
                             account.Currency = "JPY";
                         }
                     }
 
-                    for (int j = 0; j < countAccounts * 0.7*3; ++j )
+                    for (int j = 0; j < countAccounts * 0.7 * 3; ++j)
                     {
-                        await TransactionTransfer(accounts);
+                        transfers.Add(await TransactionTransfer(accounts));
                     }
 
                     for (int j = 0; j < countAccounts * 0.2 * 3; ++j)
                     {
                         int accountIndex = new Random().Next(countAccounts);
-                        await TransactionDeposit(accounts[accountIndex]);
+                        transactions.Add(await TransactionDeposit(accounts[accountIndex]));
                     }
 
                     for (int j = 0; j < countAccounts * 0.1 * 3; ++j)
                     {
                         int accountIndex = new Random().Next(countAccounts);
-                        await TransactionWithdraw(accounts[accountIndex]);
+                        transactions.Add(await TransactionWithdraw(accounts[accountIndex]));
+                    }
+                }
+
+                if(transactions.Count() + transfers.Count() >= 500000)
+                {
+                    if (transactions.Count() != 0)
+                    {
+                        await _transactionManager.FillTransactions(transactions);
+                        transactions = new();
+                    }
+                    if (transfers.Count() != 0) 
+                    {
+                        await _transactionManager.FillTransfers(transfers);
+                        transfers = new();
                     }
                 }
             }
         }
 
-        private async Task TransactionDeposit(Accounts accounts)
+        private async Task<TransactionEntity> TransactionDeposit(Accounts accounts)
         {
             int amountDeposit = new Random().Next(1, 10000);
-            Transaction transaction = new()
+            TransactionEntity transaction = new()
             {
                 AccountId = accounts.Id,
-                Amount = amountDeposit
+                Amount = amountDeposit,
+                Type = TransactionType.Deposit,
+                Time = DateTime.UtcNow
             };
-            await _transactionManager.CreateTransactionAsync(transaction);
+
+            return transaction;
+            //await _transactionManager.CreateTransactionAsync(transaction);
         }
 
-        private async Task TransactionWithdraw(Accounts accounts)
+        private async Task<TransactionEntity> TransactionWithdraw(Accounts accounts)
         {
             int amountWithdraw = new Random().Next(-10000, -1);
-            Transaction transaction = new()
+            TransactionEntity transaction = new()
             {
                 AccountId = accounts.Id,
-                Amount = amountWithdraw
+                Amount = amountWithdraw,
+                Type = TransactionType.Withdraw,
+                Time = DateTime.UtcNow
             };
-            await _transactionManager.CreateTransactionAsync(transaction);
+
+            return transaction;
+            //await _transactionManager.CreateTransactionAsync(transaction);
         }
 
-        private async Task TransactionTransfer(List<Accounts> accounts)
+        private async Task<TransferTransaction> TransactionTransfer(List<Accounts> accounts)
         {
             int accountIndex = 0;
             int targetIndex = 0;
             int amount = 0;
             int countAccounts = accounts.Count();
-
 
             while (accountIndex == targetIndex)
             {
@@ -250,7 +273,7 @@ namespace TransactionStore.API.Controllers
                 targetIndex = new Random().Next(countAccounts);
             }
 
-            
+
             while (amount == 0)
             {
                 amount = new Random().Next(1000);
@@ -265,7 +288,8 @@ namespace TransactionStore.API.Controllers
                 Amount = amount
             };
 
-            await _transactionManager.CreateTransferTransactionAsync(transaction);
+            return transaction;
+            //await _transactionManager.CreateTransferTransactionAsync(transaction);
         }
     }
 }
