@@ -21,7 +21,23 @@ public class TransactionRepository : ITransactionRepository
     }
     public async Task<int> CreateTransactionAsync(TransactionEntity transaction)
     {
-        List<int> transactionId = await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToListAsync();
+        int? transactionId = await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").SingleOrDefaultAsync();
+
+        if (transactionId is null)
+        {
+            ServerException ex = new("Server response is null");
+            _logger.Warn(ex.Message);
+
+            throw ex;
+        }
+
+        return transactionId.Value;
+    }
+
+    public async Task<List<int>> CreateTransferTransactionAsync(TransactionEntity transferWithdraw, TransactionEntity transferDeposit)
+    {
+        List<int> transactionId = await _context.Database.SqlQuery<int>
+            ($"EXEC AddTransfer {transferWithdraw.AccountId}, {transferWithdraw.Type}, {transferWithdraw.Amount},{transferDeposit.AccountId}, {transferDeposit.Type}, {transferDeposit.Amount}").ToListAsync();
 
         if (transactionId.Count() == 0)
         {
@@ -30,23 +46,6 @@ public class TransactionRepository : ITransactionRepository
 
             throw ex;
         }
-
-
-        return transactionId[0];
-    }
-
-    public async Task<List<int>> CreateTransferTransactionAsync(TransactionEntity transferWithdraw, TransactionEntity transferDeposit)
-    {
-        List<int> transactionId = await _context.Database.SqlQuery<int>
-            ($"EXEC AddTransfer {transferWithdraw.AccountId}, {transferWithdraw.Type}, {transferWithdraw.Amount},{transferDeposit.AccountId}, {transferDeposit.Type}, {transferDeposit.Amount}").ToListAsync();
-
-        //if (transactionId.Count() == 0)
-        //{
-        //    ServerException ex = new("Server response is null");
-        //    _logger.Warn(ex.Message);
-
-        //    throw ex;
-        //}
 
         return transactionId;
     }

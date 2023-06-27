@@ -27,11 +27,11 @@ public class TransactionManager : ITransactionManager
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
         transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
-        
-        //if (transaction.Type == TransactionType.Withdraw)
-        //{
-        //    await IsEnoughMoneyForTransaction(transaction);
-        //}
+
+        if (transaction.Type == TransactionType.Withdraw)
+        {
+            await IsEnoughMoneyForTransaction(transaction);
+        }
 
         TransactionEntity transactionEntity = _mapper.Map<TransactionEntity>(transaction);
         int transactionId = await _transactionRepository.CreateTransactionAsync(transactionEntity);
@@ -48,7 +48,7 @@ public class TransactionManager : ITransactionManager
             Amount = -transaction.Amount
         };
 
-        //await IsEnoughMoneyForTransaction(transferWithdraw);
+        await IsEnoughMoneyForTransaction(transferWithdraw);
 
         Transaction transferDeposit = new Transaction()
         {

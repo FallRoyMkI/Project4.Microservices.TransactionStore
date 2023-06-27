@@ -98,7 +98,7 @@ namespace TransactionStore.DAL.Migrations
                     DECLARE @objects TABLE(
                         Id int,
                         AccountId int,
-                        Type nvarchar(max),
+                        Type int,
                         Amount Decimal,
                         Time datetime2
                     )
