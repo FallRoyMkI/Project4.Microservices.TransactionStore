@@ -188,13 +188,6 @@ namespace TransactionStore.API.Controllers
                 }
                 else
                 {
-                    foreach (var account in accounts)
-                    {
-                        if (account.Currency == "PY")
-                        {
-                            account.Currency = "JPY";
-                        }
-                    }
 
                     for (int j = 0; j < countAccounts * 0.7 * 3; ++j)
                     {
