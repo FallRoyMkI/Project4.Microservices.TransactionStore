@@ -188,7 +188,6 @@ namespace TransactionStore.API.Controllers
                 }
                 else
                 {
-
                     for (int j = 0; j < countAccounts * 0.7 * 3; ++j)
                     {
                         transfers.Add(await TransactionTransfer(accounts));
