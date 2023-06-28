@@ -101,10 +101,4 @@ public class TransactionRepository : ITransactionRepository
     {
         return await _context.Transactions.AnyAsync(x=> x.AccountId == accountId);
     }
-    
-    public async Task FillTransactions(List<TransactionEntity> transactions)
-    {
-        await _context.Transactions.AddRangeAsync(transactions);
-        await _context.SaveChangesAsync();
-    }
 }

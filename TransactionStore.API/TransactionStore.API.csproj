@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TransactionStore.BLL\TransactionStore.BLL.csproj" />
-    <ProjectReference Include="..\TransactionStore.TransactionsGenerator\TransactionStore.TransactionsGenerator.csproj" />
   </ItemGroup>
 
 </Project>
