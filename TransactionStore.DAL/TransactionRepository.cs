@@ -1,11 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using Microsoft.Identity.Client.Kerberos;
+﻿using Microsoft.EntityFrameworkCore;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 using TransactionStore.Models.Exceptions;
-using TransactionStore.Models.Models;
 using ILogger = NLog.ILogger;
 
 namespace TransactionStore.DAL;
@@ -23,15 +19,12 @@ public class TransactionRepository : ITransactionRepository
     {
         int? transactionId = (await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToListAsync())[0];
 
-        if (transactionId is null)
-        {
-            ServerException ex = new("Server response is null");
-            _logger.Warn(ex.Message);
+        if (transactionId is not null) return transactionId.Value;
 
-            throw ex;
-        }
+        ServerException ex = new("Server response is null");
+        _logger.Warn(ex.Message);
 
-        return transactionId.Value;
+        throw ex;
     }
 
     public async Task<List<int>> CreateTransferTransactionAsync(TransactionEntity transferWithdraw, TransactionEntity transferDeposit)
@@ -39,15 +32,12 @@ public class TransactionRepository : ITransactionRepository
         List<int> transactionId = await _context.Database.SqlQuery<int>
             ($"EXEC AddTransfer {transferWithdraw.AccountId}, {transferWithdraw.Type}, {transferWithdraw.Amount},{transferDeposit.AccountId}, {transferDeposit.Type}, {transferDeposit.Amount}").ToListAsync();
 
-        if (transactionId.Count() == 0)
-        {
-            ServerException ex = new("Server response is null");
-            _logger.Warn(ex.Message);
+        if (transactionId.Count() != 0) return transactionId;
 
-            throw ex;
-        }
+        ServerException ex = new("Server response is null");
+        _logger.Warn(ex.Message);
 
-        return transactionId;
+        throw ex;
     }
 
     public async Task<decimal> GetAccountBalanceAsync(int accountId)
@@ -63,20 +53,17 @@ public class TransactionRepository : ITransactionRepository
     {
         TransactionEntity transaction = await _context.Transactions.SingleAsync(x => x.Id == transactionId);
 
-        if (transaction is null)
-        {
-            ServerException ex = new("Server response is null");
-            _logger.Warn(ex.Message);
+        if (transaction is not null) return transaction;
 
-            throw ex;
-        }
+        ServerException ex = new("Server response is null");
+        _logger.Warn(ex.Message);
 
-        return transaction;
+        throw ex;
     }
 
     public async Task<List<TransactionEntity>> GetAllTransactionsByAccountIdAsync(int accountId)
     {
-        if(!await IsAccountExistInDbAsync(accountId))
+        if (!await IsAccountExistInDbAsync(accountId))
         {
             AccountNotExistException ex = new("Account not exist in DB");
             _logger.Warn(ex.Message);
@@ -86,19 +73,16 @@ public class TransactionRepository : ITransactionRepository
 
         List<TransactionEntity> transactions = await _context.Transactions.FromSql($"EXEC GetTransactionsByAccountId {accountId}").ToListAsync();
 
-        if (transactions.Count() == 0)
-        {
-            ServerException ex = new("Server response is null");
-            _logger.Warn(ex.Message);
+        if (transactions.Count() != 0) return transactions;
 
-            throw ex;
-        }
+        ServerException exc = new("Server response is null");
+        _logger.Warn(exc.Message);
 
-        return transactions;
+        throw exc;
     }
 
     private async Task<bool> IsAccountExistInDbAsync(int accountId)
     {
-        return await _context.Transactions.AnyAsync(x=> x.AccountId == accountId);
+        return await _context.Transactions.AnyAsync(x => x.AccountId == accountId);
     }
 }

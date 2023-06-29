@@ -1,13 +1,11 @@
+using NLog;
+using TransactionStore.API.Validations;
 using TransactionStore.BLL;
 using TransactionStore.Contracts;
 using TransactionStore.DAL;
 using TransactionStore.Mapper;
-using NLog;
-using LogManager = NLog.LogManager;
 using ILogger = NLog.ILogger;
-using TransactionStore.API.Validations;
-
-
+using LogManager = NLog.LogManager;
 
 var builder = WebApplication.CreateBuilder(args);
 

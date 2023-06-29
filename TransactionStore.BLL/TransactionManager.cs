@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using System.Globalization;
-using System.Text.Json;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 using TransactionStore.Models.Enums;
@@ -27,12 +25,15 @@ public class TransactionManager : ITransactionManager
 
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
-
         transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
 
         if (transaction.Type == TransactionType.Withdraw)
         {
-            await IsEnoughMoneyForTransaction(transaction);
+            if (!await IsEnoughMoneyForTransaction(transaction))
+            {
+                _logger.Warn("Not enough money for transaction");
+                throw new MoneyIsNotEnoughException("Not enough money for transaction");
+            }
         }
 
         TransactionEntity transactionEntity = _mapper.Map<TransactionEntity>(transaction);
@@ -50,15 +51,20 @@ public class TransactionManager : ITransactionManager
             Amount = -transaction.Amount
         };
 
-        await IsEnoughMoneyForTransaction(transferWithdraw);
+        if (!await IsEnoughMoneyForTransaction(transferWithdraw))
+        {
+            MoneyIsNotEnoughException ex = new("Not enough money for transaction");
+            _logger.Warn(ex.Message);
+            throw ex;
+        }
 
         Transaction transferDeposit = new Transaction()
         {
             AccountId = transaction.TargetAccountId,
             Type = TransactionType.TransferDeposit,
-            Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType) 
+            Amount = transaction.Amount * _currencyRate.GetRate(transaction.MoneyType, transaction.TargetMoneyType)
         };
-        
+
         TransactionEntity transferWithdrawEntity = _mapper.Map<TransactionEntity>(transferWithdraw);
         TransactionEntity transferDepositEntity = _mapper.Map<TransactionEntity>(transferDeposit);
         List<int> resultIds = await _transactionRepository.CreateTransferTransactionAsync(transferWithdrawEntity, transferDepositEntity);
@@ -83,36 +89,32 @@ public class TransactionManager : ITransactionManager
     {
         List<TransactionEntity> callback = await _transactionRepository.GetAllTransactionsByAccountIdAsync(accountId);
         List<Transaction> transactions = _mapper.Map<List<Transaction>>(callback);
-        List<Object> result = CreateTransactionsResponse(transactions); 
+        List<Object> result = CreateTransactionsResponse(transactions);
 
         return result;
     }
-    
-    private async Task IsEnoughMoneyForTransaction(Transaction transaction)
+
+    private async Task<bool> IsEnoughMoneyForTransaction(Transaction transaction)
     {
         decimal accountBalance = await _transactionRepository.GetAccountBalanceAsync(transaction.AccountId);
 
-        if (accountBalance < Math.Abs(transaction.Amount))
-        {
-            MoneyIsNotEnoughException ex = new("Not enough money for transaction");
-            _logger.Warn(ex.Message);
-        }
+        return accountBalance >= Math.Abs(transaction.Amount);
     }
 
     private List<Object> CreateTransactionsResponse(List<Transaction> transactions)
     {
         List<Object> result = new List<Object>();
 
-        foreach(var transaction in transactions) 
+        foreach (var transaction in transactions)
         {
-            if(transaction.Type == TransactionType.TransferWithdraw)
+            if (transaction.Type == TransactionType.TransferWithdraw)
             {
                 Transaction deposit = transactions.Find(x => x.Type == TransactionType.TransferDeposit && x.Time == transaction.Time)!;
                 TransferTransactionResponse transfer = new(transaction, deposit);
 
                 result.Add(transfer);
             }
-            else if(transaction.Type != TransactionType.TransferDeposit)
+            else if (transaction.Type != TransactionType.TransferDeposit)
             {
                 result.Add(transaction);
             }

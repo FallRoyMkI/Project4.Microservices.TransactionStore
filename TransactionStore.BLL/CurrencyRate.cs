@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TransactionStore.BLL
+﻿namespace TransactionStore.BLL;
+public class CurrencyRate
 {
-    public class CurrencyRate
-    {
-        Dictionary<string, decimal> _rate;
+    Dictionary<string, decimal> _rate;
 
-        public CurrencyRate()
-        {
-            _rate = new Dictionary<string, decimal>() 
+    public CurrencyRate()
+    {
+        _rate = new Dictionary<string, decimal>()
             {
                 { "RUBUSD", 1 },
                 { "USDRUB", 2 },
@@ -71,12 +64,10 @@ namespace TransactionStore.BLL
                 { "BGNARS", 55 },
                 { "ARSBGN", 56 }
             };
+    }
 
-        }
-        
-        public decimal GetRate(string currency1, string currency2)
-        {
-            return _rate[currency1+currency2];
-        }
+    public decimal GetRate(string currency1, string currency2)
+    {
+        return _rate[currency1 + currency2];
     }
 }

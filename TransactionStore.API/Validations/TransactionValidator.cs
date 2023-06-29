@@ -1,18 +1,14 @@
 ﻿using FluentValidation;
 using TransactionStore.Models.Dtos;
 
-namespace TransactionStore.API.Validations
+namespace TransactionStore.API.Validations;
+public class TransactionValidator : AbstractValidator<TransactionDtoRequest>
 {
-    public class TransactionValidator : AbstractValidator<TransactionDtoRequest>
+    public TransactionValidator()
     {
-        public TransactionValidator() 
-        {
-            RuleFor(request => request.Amount)
-               .Must(x => x != 0).WithMessage("Invalid Amount");
-            RuleFor(request => request.AccountId)
-                .Must(x => x > 0).WithMessage("Invalid AccountId");
-        }
+        RuleFor(request => request.Amount)
+           .Must(x => x != 0).WithMessage("Invalid Amount");
+        RuleFor(request => request.AccountId)
+            .Must(x => x > 0).WithMessage("Invalid AccountId");
     }
-
-
 }

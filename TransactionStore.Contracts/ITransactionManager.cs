@@ -1,5 +1,4 @@
-﻿using TransactionStore.Models.Entities;
-using TransactionStore.Models.Models;
+﻿using TransactionStore.Models.Models;
 
 namespace TransactionStore.Contracts;
 

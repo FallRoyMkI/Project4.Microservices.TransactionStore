@@ -1,6 +1,4 @@
-﻿using TransactionStore.Models.Enums;
-
-namespace TransactionStore.Models.Dtos;
+﻿namespace TransactionStore.Models.Dtos;
 
 public class TransactionDtoResponse
 {

@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-using TransactionStore.Models.Enums;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 

@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TransactionStore.Models.Exceptions
+﻿namespace TransactionStore.Models.Exceptions;
+public class AccountNotExistException : Exception
 {
-    public class AccountNotExistException : Exception
-    {
-        public AccountNotExistException(string message) : base(message) { }
-    }
+    public AccountNotExistException(string message) : base(message) { }
 }

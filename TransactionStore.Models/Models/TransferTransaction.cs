@@ -1,6 +1,4 @@
-﻿using TransactionStore.Models.Enums;
-
-namespace TransactionStore.Models.Models;
+﻿namespace TransactionStore.Models.Models;
 
 public class TransferTransaction
 {
