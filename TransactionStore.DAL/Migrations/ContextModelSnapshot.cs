@@ -44,6 +44,7 @@ namespace TransactionStore.DAL.Migrations
 
                     b.HasKey("Id");
                     b.HasIndex("AccountId");
+                    b.HasIndex("Time");
 
                     b.ToTable("Transactions");
                 });

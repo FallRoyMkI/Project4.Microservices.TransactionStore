@@ -28,7 +28,7 @@ namespace TransactionStore.DAL.Migrations
                     table.PrimaryKey("PK_Transactions", x => x.Id);
                 });
             migrationBuilder.Sql(
-    @"EXEC (' CREATE PROCEDURE [dbo].[AddTransaction]
+                @"EXEC (' CREATE PROCEDURE [dbo].[AddTransaction]
             	@AccountId Int,
             	@Type Int,
             	@Amount Decimal
@@ -93,7 +93,6 @@ namespace TransactionStore.DAL.Migrations
                 @AccountId int
                 AS
                 BEGIN
-                    SET NOCOUNT ON;
 
                     DECLARE @objects TABLE(
                         Id int,
@@ -102,12 +101,6 @@ namespace TransactionStore.DAL.Migrations
                         Amount Decimal,
                         Time datetime2
                     )
-
-
-                    INSERT INTO @objects
-                    select* from dbo.Transactions AS T
-                    where T.AccountId = @AccountId and(T.Type = {(int)TransactionType.TransferWithdraw} or T.Type = {(int)TransactionType.TransferDeposit})
-
 
                     DECLARE @time Table(
                         Id int Identity,
@@ -118,7 +111,8 @@ namespace TransactionStore.DAL.Migrations
 
 
                     Insert Into @time
-                    select O.Time FROM @objects as O
+                    select T.Time from dbo.Transactions AS T 
+                    where T.AccountId = @AccountId and(T.Type = 2 or T.Type = 3)
 
 
                     Declare @count_table_time int
@@ -131,29 +125,32 @@ namespace TransactionStore.DAL.Migrations
                     while @tmp < @count_table_time + 1
                     BEGIN
                         set @transaction_time = (select T.Time from @time AS T where T.Id = @tmp)
-                        IF EXISTS(
-                            select* from dbo.Transactions AS T
-                            WHERE T.AccountId<> @AccountId AND T.Time = @transaction_time
-                        )
                         BEGIN
                             INSERT INTO @objects
-                            select* from dbo.Transactions AS T
-                            WHERE T.AccountId<> @AccountId AND T.Time = @transaction_time
+                            select* from dbo.Transactions AS T 
+                            WHERE T.Time = @transaction_time
                         END
                         set @tmp = @tmp + 1
                     END
 
                     INSERT INTO @objects
-                    select* from dbo.Transactions AS T
-                    where T.AccountId = @AccountId and(T.Type = {(int)TransactionType.Withdraw} or T.Type = {(int)TransactionType.Deposit})
+                    select* from dbo.Transactions AS T 
+                    where T.AccountId = @AccountId and(T.Type = 0 or T.Type = 1)
 
 
                     SELECT*
                     FROM @objects as o
-                    order by o.Time ASC, o.Type DESC
-                END  ')");
+                    order by o.Time ASC, o.Type ASC
+                END  ");
 
-            migrationBuilder.CreateIndex("NonClusteredIndex", "Transactions", "AccountId");
+            migrationBuilder.Sql(
+               @"EXEC (' CREATE PROCEDURE [dbo].[GetAccountBalance]
+            	@AccountId Int
+                AS
+				SELECT SUM(Amount) AS Amount FROM dbo.Transactions Where AccountId = @AccountId");
+
+            migrationBuilder.CreateIndex("AccountIndex", "Transactions", "AccountId");
+            migrationBuilder.CreateIndex("TimeIndex", "Transactions", "Time");
         }
 
         /// <inheritdoc />

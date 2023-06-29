@@ -10,8 +10,7 @@ public class Programm
 {
     static void Main()
     {
-        string connectionString = @"Data Source= 194.87.210.5;Initial Catalog = CrmBourseDB;
-                                TrustServerCertificate=True;User ID = student;Password=qwe!23;";
+        string connectionString = Environment.GetEnvironmentVariable("CrmConnectionString")!;
         string query = "SELECT * FROM dbo.Accounts where LeadId < 4080000";
 
         Dictionary<int, List<Accounts>> leadId_AccountId= new Dictionary<int, List<Accounts>>();

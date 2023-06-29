@@ -1,4 +1,6 @@
-﻿using Moq;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Moq;
 using NUnit.Framework;
 using TransactionStore.Contracts;
 using TransactionStore.DAL;
@@ -9,21 +11,21 @@ namespace TransactionStore.Tests.DAL.Tests
     public class TransactionRepositoryTests
     {
         private ITransactionRepository _transactionRepository;
-        private Mock<ITransactionRepository> _mock;
-        private Context _context;
+        private Mock<Context> _mock = new Mock<Context>();
+        private Mock<Database> _mockDatabase;
 
         [SetUp]
         public void Setup()
         {
-            _context = new Context();
-            _transactionRepository = new TransactionRepository(_context, null);
-            _mock = new Mock<ITransactionRepository>();
+            _mock = new Mock<Context>();
+            _transactionRepository = new TransactionRepository(_mock.Object, null);
+
         }
 
         [TestCaseSource(typeof(TransactionRepositoryTestCaseSource), nameof(TransactionRepositoryTestCaseSource.CreateTransactionAsyncTestCaseCource))]
         public async Task CreateTransactionAsyncTest(TransactionEntity transaction, int expectedId)
         {
-            _mock.Setup( o => o.CreateTransactionAsync(transaction)).ReturnsAsync(transaction.Id).Verifiable();
+            _mockDatabase.Setup(o => o.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}")).Returns(new List<int>() { expectedId });
             int expected = expectedId;
             int actual = await _transactionRepository.CreateTransactionAsync(transaction);
             _mock.VerifyAll();

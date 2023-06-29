@@ -21,7 +21,7 @@ public class TransactionRepository : ITransactionRepository
     }
     public async Task<int> CreateTransactionAsync(TransactionEntity transaction)
     {
-        int? transactionId = await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").SingleOrDefaultAsync();
+        int? transactionId = (await _context.Database.SqlQuery<int>($"EXEC AddTransaction {transaction.AccountId}, {transaction.Type}, {transaction.Amount}").ToListAsync())[0];
 
         if (transactionId is null)
         {

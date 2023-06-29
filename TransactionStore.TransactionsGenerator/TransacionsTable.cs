@@ -11,8 +11,7 @@ namespace TransactionStore.TransactionsGenerator
         public static DataTable _transactionsTable = new DataTable("Transactions");
         public DataRow row = _transactionsTable.NewRow();
         public int _id = 1;
-        public readonly string _connectionString = @"Data Source= 194.87.210.5;Initial Catalog = TStoreBourseDB;
-                                TrustServerCertificate=True;User ID = student;Password=qwe!23;";
+        public readonly string _connectionString = Environment.GetEnvironmentVariable("TStoreConnectionString")!;
 
         CurrencyRate _currencyRate = new();
         public void MakeTable(Dictionary<int, List<Accounts>> leadId_AccountId)

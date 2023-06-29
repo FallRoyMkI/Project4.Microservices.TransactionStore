@@ -10,5 +10,4 @@ public interface ITransactionRepository
     public Task<decimal> GetAccountBalanceAsync(int accountId);
     public Task<TransactionEntity> GetTransactionByIdAsync(int transactionId);
     public Task<List<TransactionEntity>> GetAllTransactionsByAccountIdAsync(int accountId);
-    public Task FillTransactions(List<TransactionEntity> transactions);
 }

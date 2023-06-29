@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using System.Globalization;
+using System.Text.Json;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Entities;
 using TransactionStore.Models.Enums;
@@ -26,6 +27,7 @@ public class TransactionManager : ITransactionManager
 
     public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
+
         transaction.Type = transaction.Amount < 0 ? TransactionType.Withdraw : TransactionType.Deposit;
 
         if (transaction.Type == TransactionType.Withdraw)

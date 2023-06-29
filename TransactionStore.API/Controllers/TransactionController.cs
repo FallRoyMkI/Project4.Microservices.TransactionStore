@@ -1,13 +1,12 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
+using System.Text.Json;
 using TransactionStore.API.Validations;
 using TransactionStore.Contracts;
 using TransactionStore.Models.Dtos;
-using TransactionStore.Models.Entities;
-using TransactionStore.Models.Enums;
 using TransactionStore.Models.Models;
-using TransactionStore.TransactionsGenerator;
 using ILogger = NLog.ILogger;
 
 namespace TransactionStore.API.Controllers
@@ -21,12 +20,13 @@ namespace TransactionStore.API.Controllers
         private readonly ILogger _logger;
         private readonly TransactionValidator _validatorTransaction;
         private readonly TransferTransactionValidator _validatorTransfer;
-        public TransactionController(ITransactionManager transactionManager, IMapper mapper, ILogger logger, TransactionValidator validator)
+        public TransactionController(ITransactionManager transactionManager, IMapper mapper, ILogger logger, TransactionValidator validator, TransferTransactionValidator validatorTransfer)
         {
             _transactionManager = transactionManager;
             _mapper = mapper;
             _logger = logger;
             _validatorTransaction = validator;
+            _validatorTransfer = validatorTransfer;
         }
 
         [HttpPost("/")]
@@ -34,6 +34,8 @@ namespace TransactionStore.API.Controllers
         {
             try
             {
+                _logger.Info($"Method was called with parameters: transaction = {JsonSerializer.Serialize(transaction)}");
+
                 var validationResult = _validatorTransaction.Validate(transaction);
                 if (!validationResult.IsValid)
                 {
@@ -48,6 +50,8 @@ namespace TransactionStore.API.Controllers
                 Transaction transactionBll = _mapper.Map<Transaction>(transaction);
                 int resultId = await _transactionManager.CreateTransactionAsync(transactionBll);
 
+                _logger.Info($"Method was finished with answer: transactionId = {resultId}");
+
                 return Ok(resultId);
             }
             catch (Exception ex)
@@ -61,6 +65,8 @@ namespace TransactionStore.API.Controllers
         {
             try
             {
+                _logger.Info($"Method was called with parameters: transferTransaction = {JsonSerializer.Serialize(transferTransaction)}");
+
                 var validationResult = _validatorTransfer.Validate(transferTransaction);
                 if (!validationResult.IsValid)
                 {
@@ -75,6 +81,8 @@ namespace TransactionStore.API.Controllers
                 TransferTransaction transactionBll = _mapper.Map<TransferTransaction>(transferTransaction);
                 List<int> resultIds = await _transactionManager.CreateTransferTransactionAsync(transactionBll);
 
+                _logger.Info($"Method was finished with answer: transactionsId = {resultIds[0]},{resultIds[1]}");
+
                 return Ok(resultIds);
             }
             catch (Exception ex)
@@ -88,6 +96,8 @@ namespace TransactionStore.API.Controllers
         {
             try
             {
+                _logger.Info($"Method was called with parameters: accountId = {accountId}");
+
                 if (accountId < 1)
                 {
                     ArgumentException ex = new ArgumentException("Invalid accountId");
@@ -97,6 +107,8 @@ namespace TransactionStore.API.Controllers
                 }
 
                 decimal balance = await _transactionManager.GetAccountBalanceAsync(accountId);
+
+                _logger.Info($"Method was finished with answer: balance = {balance}");
 
                 return Ok(balance);
             }
@@ -111,6 +123,8 @@ namespace TransactionStore.API.Controllers
         {
             try
             {
+                _logger.Info($"Method was called with parameters: transactionId = {transactionId}");
+
                 if (transactionId < 1)
                 {
                     ArgumentException ex = new ArgumentException("Invalid transactionId");
@@ -121,6 +135,8 @@ namespace TransactionStore.API.Controllers
 
                 Transaction callback = await _transactionManager.GetTransactionByIdAsync(transactionId);
                 TransactionDtoResponse transaction = _mapper.Map<TransactionDtoResponse>(callback);
+
+                _logger.Info($"Method was finished with answer: transaction = {JsonSerializer.Serialize(transaction)}");
 
                 return Ok(transaction);
             }
@@ -135,6 +151,8 @@ namespace TransactionStore.API.Controllers
         {
             try
             {
+                _logger.Info($"Method was called with parameters: accountId = {accountId}");
+
                 if (accountId < 1)
                 {
                     ArgumentException ex = new ArgumentException("Invalid accountId");
@@ -158,6 +176,8 @@ namespace TransactionStore.API.Controllers
                     }
                 }
 
+                _logger.Info($"Method was finished");
+                
                 return Ok(result);
             }
             catch (Exception ex)
