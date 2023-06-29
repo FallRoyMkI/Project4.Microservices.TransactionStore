@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-LogManager.LoadConfiguration(String.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
+LogManager.LoadConfiguration($"{String.Concat(Directory.GetCurrentDirectory())}/nLog.config");
 var nlog = LogManager.Setup().GetCurrentClassLogger();
 builder.Services.AddSingleton<ILogger>(nlog);
 
